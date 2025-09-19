@@ -55,8 +55,13 @@ export class SheetsManager {
       
       console.log(`✅ Connected to sheet: ${this.doc.title}`);
       
-      // Use the first sheet
+      // Use the specific named sheet
       this.sheet = this.doc.sheetsByTitle['Endgames_scores_FROM BOT'];
+      
+      if (!this.sheet) {
+        console.error('❌ Could not find sheet "Endgames_scores_FROM BOT"');
+        return false;
+      }
       
       return true;
     } catch (error) {
@@ -65,7 +70,7 @@ export class SheetsManager {
     }
   }
 
-  async addGameScores(scores) {
+  async addGameScores(scores, gameId, loggedByUser) {
     if (!this.sheet) {
       console.error('❌ Sheet not initialized');
       return false;
@@ -80,10 +85,11 @@ export class SheetsManager {
       
       // Create game row data
       const gameData = {
-        Game_id: Date.now(),
+        Game_id: gameId, // Use the provided game ID
         Game_date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
         Game_nb_players: scores.length,
-        Game_VP: winner.score // Winner's score as game VP
+        Game_VP: winner.score, // Winner's score as game VP
+        Game_logged_by_user: loggedByUser // Add Discord username who logged the game
       };
       
       // Add each player's data (up to 6 players)
@@ -101,10 +107,11 @@ export class SheetsManager {
       console.log('📝 Game data to add:', gameData);
       
       await this.sheet.addRow(gameData);
-      console.log(`✅ Added game record to sheet`);
+      console.log(`✅ Added game record to sheet (logged by: ${loggedByUser})`);
       return true;
     } catch (error) {
       console.error('❌ Failed to add scores:', error);
+      console.error('❌ Error details:', error.message);
       return false;
     }
   }
