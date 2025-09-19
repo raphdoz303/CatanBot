@@ -1,0 +1,29 @@
+{
+  "name": "catan-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for Catan score tracking",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "discord",
+    "bot",
+    "catan",
+    "game",
+    "scoring"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "google-auth-library": "^10.3.0",
+    "google-spreadsheet": "^5.0.2"
+  }
+}
