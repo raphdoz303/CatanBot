@@ -1,29 +1,19 @@
 import { Client, GatewayIntentBits } from 'discord.js';
 import dotenv from 'dotenv';
-import { registerCommands } from './bot/commands.js';
-import http from 'http';
+import { registerCommands, handleInteraction as handleGameCommands } from './bot/commands.js';
+import { registerRankingCommands, handleRankingCommand } from './bot/ranking-commands.js';
+import { registerTeasingCommands, handleTeasingCommand } from './bot/teasing-commands.js';
 
 // Load environment variables
 dotenv.config();
 
-// Create simple HTTP server for Render
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Catan Bot is running!');
-});
-
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`🌐 Health check server running on port ${PORT}`);
-});
-
-// Create Discord client with required permissions
+// Create Discord client
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.GuildMembers // Added for member selection
+    GatewayIntentBits.GuildMembers
   ]
 });
 
@@ -31,15 +21,28 @@ const client = new Client({
 client.once('ready', async () => {
   console.log(`✅ ${client.user.tag} is online!`);
   
-  // Register our slash commands
+  // Register all command types
   await registerCommands(client);
-  console.log('🎯 Commands registered!');
+  await registerRankingCommands(client);
+  await registerTeasingCommands(client);
+  console.log('🎯 All commands registered!');
 });
 
-// Handle ALL interactions (slash commands, buttons, modals, select menus)
+// Handle all interactions
 client.on('interactionCreate', async (interaction) => {
-  const { handleInteraction } = await import('./bot/commands.js');
-  await handleInteraction(interaction);
+  if (interaction.isChatInputCommand()) {
+    // Route to appropriate handler based on command
+    if (interaction.commandName === 'endgame') {
+      await handleGameCommands(interaction);
+    } else if (['myrank', 'ladder'].includes(interaction.commandName)) {
+      await handleRankingCommand(interaction);
+    } else if (interaction.commandName === 'roast') {
+      await handleTeasingCommand(interaction);
+    }
+  } else {
+    // Non-slash command interactions go to game commands
+    await handleGameCommands(interaction);
+  }
 });
 
 // Start the bot

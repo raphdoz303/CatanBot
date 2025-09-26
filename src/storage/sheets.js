@@ -115,4 +115,201 @@ export class SheetsManager {
       return false;
     }
   }
+  async getLadderData() {
+    try {
+      const ladderSheet = this.doc.sheetsByTitle['LADDER'];
+      if (!ladderSheet) {
+        console.error('❌ LADDER sheet not found');
+        return null;
+      }
+
+      await ladderSheet.loadCells('B:E'); // Load columns B-E
+      
+      const ladderData = [];
+      let row = 2; // Start from row 2 (assuming row 1 is headers)
+      
+      while (row <= 100) { // Check up to 100 rows
+        const rank = ladderSheet.getCell(row - 1, 1).value; // Column B
+        const player = ladderSheet.getCell(row - 1, 2).value; // Column C
+        const points = ladderSheet.getCell(row - 1, 3).value; // Column D
+        const games = ladderSheet.getCell(row - 1, 4).value; // Column E
+        
+        if (!player) break; // No more data
+        
+        ladderData.push({
+          rank: rank,
+          player: player,
+          points: points,
+          games: games
+        });
+        
+        row++;
+      }
+      
+      console.log(`📊 Loaded ladder data for ${ladderData.length} players`);
+      return ladderData;
+    } catch (error) {
+      console.error('❌ Failed to load ladder data:', error);
+      return null;
+    }
+  }
+
+  async getPlayerRank(playerName) {
+    try {
+      const myRankSheet = this.doc.sheetsByTitle['MY_RANK'];
+      if (!myRankSheet) {
+        console.error('❌ MY_RANK sheet not found');
+        return null;
+      }
+
+      await myRankSheet.loadCells('B3:E3');
+      
+      // Set the player name in B3
+      myRankSheet.getCell(2, 1).value = playerName; // B3 (0-indexed: row 2, col 1)
+      await myRankSheet.saveUpdatedCells();
+      
+      // Wait a moment for formulas to recalculate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reload to get updated values
+      await myRankSheet.loadCells('B3:E3');
+      
+      const rank = myRankSheet.getCell(2, 2).value; // C3
+      const points = myRankSheet.getCell(2, 3).value; // D3
+      const games = myRankSheet.getCell(2, 4).value; // E3
+      
+      return {
+        player: playerName,
+        rank: rank,
+        points: points,
+        games: games
+      };
+    } catch (error) {
+      console.error('❌ Failed to get player rank:', error);
+      return null;
+    }
+  }
+
+  async getLadderData() {
+    try {
+      console.log('🔍 Looking for LADDER sheet...');
+      const ladderSheet = this.doc.sheetsByTitle['LADDER'];
+      if (!ladderSheet) {
+        console.error('❌ LADDER sheet not found');
+        console.log('🔍 Available sheets:', Object.keys(this.doc.sheetsByTitle));
+        return null;
+      }
+
+      console.log('🔍 Loading cells B:E...');
+      await ladderSheet.loadCells('B:E');
+      console.log('🔍 Cells loaded successfully');
+      
+      const ladderData = [];
+      let row = 2;
+      
+      console.log('🔍 Starting to read rows...');
+      while (row <= 100) {
+        const rank = ladderSheet.getCell(row - 1, 1).value;
+        const player = ladderSheet.getCell(row - 1, 2).value;
+        const points = ladderSheet.getCell(row - 1, 3).value;
+        const games = ladderSheet.getCell(row - 1, 4).value;
+        
+        if (!player) {
+          console.log(`🔍 No player found at row ${row}, stopping`);
+          break;
+        }
+        
+        console.log(`🔍 Row ${row}: ${player}, Rank: ${rank}, Points: ${points}, Games: ${games}`);
+        
+        ladderData.push({
+          rank: rank,
+          player: player,
+          points: points,
+          games: games
+        });
+        
+        row++;
+      }
+      
+      console.log(`📊 Loaded ladder data for ${ladderData.length} players`);
+      return ladderData;
+    } catch (error) {
+      console.error('❌ Failed to load ladder data:', error);
+      console.error('❌ Error details:', error.message);
+      return null;
+    }
+  }
+
+  async getPlayerRank(playerName) {
+    try {
+      const myRankSheet = this.doc.sheetsByTitle['MY_RANK'];
+      if (!myRankSheet) {
+        console.error('❌ MY_RANK sheet not found');
+        return null;
+      }
+
+      await myRankSheet.loadCells('B3:E3');
+      
+      // Set the player name in B3
+      myRankSheet.getCell(2, 1).value = playerName; // B3 (0-indexed: row 2, col 1)
+      await myRankSheet.saveUpdatedCells();
+      
+      // Wait a moment for formulas to recalculate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Reload to get updated values
+      await myRankSheet.loadCells('B3:E3');
+      
+      const rank = myRankSheet.getCell(2, 2).value; // C3
+      const points = myRankSheet.getCell(2, 3).value; // D3
+      const games = myRankSheet.getCell(2, 4).value; // E3
+      
+      if (!rank || rank === '#N/A' || rank === '') {
+        return null; // Player not found
+      }
+      
+      return {
+        player: playerName,
+        rank: rank,
+        points: points,
+        games: games
+      };
+    } catch (error) {
+      console.error('❌ Failed to get player rank:', error);
+      return null;
+    }
+  }
+  async getTeasingMessages() {
+    try {
+      const teasingSheet = this.doc.sheetsByTitle['TEASING_MESSAGES'];
+      if (!teasingSheet) {
+        console.error('❌ TEASING_MESSAGES sheet not found');
+        console.log('🔍 Available sheets:', Object.keys(this.doc.sheetsByTitle));
+        return null;
+      }
+
+      await teasingSheet.loadCells('A:A'); // Only load column A since we don't use signatures from sheet
+      
+      const messages = [];
+      let row = 1; // Start from row 1
+      
+      while (row <= 100) {
+        const message = teasingSheet.getCell(row - 1, 0).value; // Column A
+        
+        if (!message) break; // No more messages
+        
+        messages.push({
+          template: message
+        });
+        
+        row++;
+      }
+      
+      console.log(`🎭 Loaded ${messages.length} teasing messages`);
+      return messages;
+    } catch (error) {
+      console.error('❌ Failed to load teasing messages:', error);
+      return null;
+    }
+  }
 }
